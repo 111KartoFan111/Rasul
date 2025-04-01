@@ -12,38 +12,88 @@ const AuthContext = createContext({
 
 // Authentication Provider Component
 export const AuthProvider = ({ children }) => {
-  // State variables for authentication
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
+  const [authError, setAuthError] = useState(false);
 
-  // Keys for localStorage from environment variables
   const TOKEN_KEY = process.env.REACT_APP_TOKEN_KEY || 'foodrush_user_token';
   const USER_KEY = process.env.REACT_APP_USER_KEY || 'foodrush_user_data';
 
-  // Check authentication on mount
-  useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    const storedUser = localStorage.getItem(USER_KEY);
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
 
-    if (storedToken && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        
-        setUser(parsedUser);
-        setToken(storedToken);
-        setRole(parsedUser.role);
-        setIsAuthenticated(true);
-      } catch (error) {
-        // Clear invalid stored data
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
+  // Validate token with backend
+  const validateToken = async (token) => {
+    try {
+      const response = await fetch(`${BASE_URL}/auth/users/me`, {
+        method: 'GET', 
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error('Invalid token');
       }
-    }
+        
+      return await response.json();
+    } catch (error) {
+      return null;
+    }  
+  };
+
+  const logout = useCallback(() => {
+    // Remove user data and token from localStorage
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+
+    // Reset all authentication states
+    setUser(null);
+    setToken(null);
+    setRole(null);
+    setIsAuthenticated(false);
+
+    // Optional: Redirect to login page
+    window.location.href = '/login';
   }, [TOKEN_KEY, USER_KEY]);
 
-  // Login function with comprehensive user data storage
+  // Enhanced token check on mount
+  useEffect(() => {
+    const checkTokenValidity = async () => {
+      const storedToken = localStorage.getItem(TOKEN_KEY);
+      const storedUser = localStorage.getItem(USER_KEY);
+  
+      if (storedToken && storedUser) {
+        try {
+          JSON.parse(storedUser); // Используем parsedUser, чтобы избежать предупреждения ESLint
+          const validatedUser = await validateToken(storedToken);
+  
+          if (validatedUser) {
+            setUser(validatedUser);
+            setToken(storedToken);
+            setRole(validatedUser.role);
+            setIsAuthenticated(true);
+          } else {
+            throw new Error('Invalid token');
+          }
+        } catch (error) {
+          // Clear invalid stored data and set auth error
+          setAuthError(true);
+        }
+      }
+    };
+  
+    checkTokenValidity();
+  }, [TOKEN_KEY, USER_KEY, validateToken]);
+  
+  useEffect(() => {
+    if (authError) {
+      logout();
+    }
+  }, [authError, logout]);
+  
+
   const login = useCallback((userData, authToken) => {
     // Store user data and token in localStorage
     localStorage.setItem(TOKEN_KEY, authToken);
@@ -56,31 +106,15 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
   }, [TOKEN_KEY, USER_KEY]);
 
-  // Logout function to clear all authentication data
-  const logout = useCallback(() => {
-    // Remove user data and token from localStorage
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-
-    // Reset all authentication states
-    setUser(null);
-    setToken(null);
-    setRole(null);
-    setIsAuthenticated(false);
-  }, [TOKEN_KEY, USER_KEY]);
-
-  // Context value with all authentication-related data and methods
-  const contextValue = {
-    user,
-    isAuthenticated,
-    login,
-    logout,
-    token,
-    role
-  };
-
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isAuthenticated, 
+      login, 
+      logout, 
+      token, 
+      role 
+    }}>
       {children}
     </AuthContext.Provider>
   );

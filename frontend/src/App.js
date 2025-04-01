@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Dashboard from './components/Dashboard';
 import OrderManagement from './components/OrderManagement';
 import DriverManagement from './components/DriverManagement';
@@ -8,6 +7,7 @@ import Analytics from './components/Analytics';
 import Settings from './components/Settings';
 import AuthModal from './components/AuthModal';
 import apiClient from './utils/apiClient';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './App.css';
 
 const AppContent = () => {
@@ -17,12 +17,35 @@ const AppContent = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [authError, setAuthError] = useState(false);
 
   const { user, isAuthenticated, logout } = useAuth();
+
+
+  // Handle unauthorized access
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+      setIsAuthModalOpen(true);
+    };
+
+    window.addEventListener('unauthorized', handleUnauthorized);
+
+    return () => {
+      window.removeEventListener('unauthorized', handleUnauthorized);
+    };
+  }, [logout]);
 
   // Load initial data from API
   useEffect(() => {
     const fetchData = async () => {
+      if (!isAuthenticated) return;
+
+      setIsLoading(true);
+      setError(null);
+
       try {
         const [ordersData, driversData, restaurantsData, customersData] = await Promise.all([
           apiClient.get('/orders'),
@@ -30,22 +53,33 @@ const AppContent = () => {
           apiClient.get('/restaurants'),
           apiClient.get('/customers')
         ]);
-  
+
         setOrders(ordersData);
         setDrivers(driversData);
         setRestaurants(restaurantsData);
         setCustomers(customersData);
       } catch (err) {
         console.error('Failed to fetch data:', err);
-        // Handle error (e.g., show error message, logout)
-        logout();
+        setError(err.message);
+        
+        if (err.status === 401) {
+          setAuthError(true);
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
-  
-    if (isAuthenticated) {
-      fetchData();
+
+    fetchData();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (authError) {
+      logout();
     }
-  }, [isAuthenticated, logout]);
+  }, [authError, logout]);
+
+  // Rest of the component remains the same
   // Functions to manage orders
   const assignDriver = async (orderId, driverId) => {
     try {
