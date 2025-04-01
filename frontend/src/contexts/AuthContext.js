@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const AuthContext = createContext();
+// Create the context with a default value
+const AuthContext = createContext({
+  user: null,
+  isAuthenticated: false,
+  login: () => {},
+  logout: () => {},
+  loading: true
+});
 
 export function useAuth() {
   return useContext(AuthContext);
@@ -11,7 +18,7 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // При инициализации проверяем наличие данных пользователя в localStorage
+  // Check for stored authentication on mount
   useEffect(() => {
     const checkAuth = () => {
       try {
@@ -24,7 +31,6 @@ export function AuthProvider({ children }) {
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
-        // Очищаем данные аутентификации при ошибке
         logout();
       } finally {
         setLoading(false);
@@ -34,29 +40,20 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, []);
 
-  // Функция для входа пользователя
   const login = (userData, token) => {
-    // Сохраняем данные в localStorage
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
-    
-    // Обновляем состояние
     setUser(userData);
     setIsAuthenticated(true);
   };
 
-  // Функция для выхода пользователя
   const logout = () => {
-    // Очищаем localStorage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    
-    // Обновляем состояние
     setUser(null);
     setIsAuthenticated(false);
   };
 
-  // Контекстное значение, предоставляемое потребителям
   const value = {
     user,
     isAuthenticated,

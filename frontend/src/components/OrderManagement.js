@@ -1,11 +1,27 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions';
 import '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css';
 import axios from 'axios';
 
-// Replace with your actual Mapbox token
-mapboxgl.accessToken = 'pk.eyJ1IjoicmFzdWwyMzIxIiwiYSI6ImNtOGU2ejI5cjJocmMybXM1aXJqODV4N3gifQ.8yONCbExQXDnQHTnZb93Fg';
+// Get Mapbox token from local storage instead of hardcoding it
+const getMapboxToken = () => {
+  const token = localStorage.getItem('mapbox_token');
+  if (!token) {
+    console.error('Mapbox token not found in localStorage. Please set it first.');
+    return '';
+  }
+  return token;
+};
+
+// Set the token only when it's available
+useEffect(() => {
+  const token = getMapboxToken();
+  if (token) {
+    mapboxgl.accessToken = token;
+  }
+}, []);
 
 // Static customer data
 const STATIC_CUSTOMERS = [
@@ -101,9 +117,6 @@ const NewOrderForm = ({
     }
   };
 
-  // Rest of the NewOrderForm component remains the same...
-  // (Keep all the other functions and the return statement as they were)
-
   // Handle restaurant selection
   const handleRestaurantSelect = (e) => {
     const restaurantId = e.target.value;
@@ -181,32 +194,52 @@ const NewOrderForm = ({
   };
 
   // Handle updating item quantity
-// В функции handleCreateOrder в NewOrderForm
-const handleCreateOrder = () => {
-  if (newOrder.customerId && newOrder.restaurantId && newOrder.items.length > 0) {
-    // Убедимся, что координаты в правильном формате
-    const deliveryCoordinates = newOrder.deliveryCoordinates && 
-      newOrder.deliveryCoordinates.length === 2 ? 
-      newOrder.deliveryCoordinates : null;
+  const handleUpdateItemQuantity = (itemId, newQuantity) => {
+    const updatedItems = newOrder.items.map(item => {
+      if (item.id === itemId) {
+        return {
+          ...item,
+          quantity: newQuantity,
+          subtotal: item.price * newQuantity
+        };
+      }
+      return item;
+    });
     
-    // Подготовка данных для отправки на сервер
-    const orderData = {
-      customer_id: parseInt(newOrder.customerId),
-      restaurant_id: parseInt(newOrder.restaurantId),
-      driver_id: newOrder.driverId ? parseInt(newOrder.driverId) : null,
-      items: JSON.stringify(newOrder.items),
-      total_amount: newOrder.totalAmount,
-      status: 'new',
-      customer_name: newOrder.customerName,
-      restaurant_name: newOrder.restaurantName,
-      driver_name: newOrder.driverName || null,
-      delivery_address: newOrder.deliveryAddress || '',
-      delivery_coordinates: deliveryCoordinates
-    };
-    
-    onCreateOrder(orderData);
-  }
-};
+    setNewOrder({
+      ...newOrder,
+      items: updatedItems,
+      totalAmount: updatedItems.reduce((sum, item) => sum + item.subtotal, 0)
+    });
+  };
+
+  // Handle creating an order
+  const handleCreateOrder = () => {
+    if (newOrder.customerId && newOrder.restaurantId && newOrder.items.length > 0) {
+      // Убедимся, что координаты в правильном формате
+      const deliveryCoordinates = newOrder.deliveryCoordinates && 
+        newOrder.deliveryCoordinates.length === 2 ? 
+        newOrder.deliveryCoordinates : null;
+      
+      // Подготовка данных для отправки на сервер
+      const orderData = {
+        customer_id: parseInt(newOrder.customerId),
+        restaurant_id: parseInt(newOrder.restaurantId),
+        driver_id: newOrder.driverId ? parseInt(newOrder.driverId) : null,
+        items: JSON.stringify(newOrder.items),
+        total_amount: newOrder.totalAmount,
+        status: 'new',
+        customer_name: newOrder.customerName,
+        restaurant_name: newOrder.restaurantName,
+        driver_name: newOrder.driverName || null,
+        delivery_address: newOrder.deliveryAddress || '',
+        delivery_coordinates: deliveryCoordinates
+      };
+      
+      onCreateOrder(orderData);
+    }
+  };
+
   return (
     <div className="card mb-8">
       <h3 className="card-title mb-4">Создать новый заказ</h3>
@@ -422,6 +455,7 @@ const handleCreateOrder = () => {
   );
 };
 
+
 // Main component for order management
 const OrderManagement = () => {
   // States
@@ -446,7 +480,6 @@ const OrderManagement = () => {
   const API_BASE_URL = 'http://localhost:5001';
 
   // Use static customers instead of fetching from the database
-  const customers = STATIC_CUSTOMERS;
 
   // Fetch data from the database (except customers)
   useEffect(() => {

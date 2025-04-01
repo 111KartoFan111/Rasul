@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, AreaChart, BarChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { Calendar, Clock, TrendingUp, DollarSign, Truck, Store, AlertCircle, Package } from 'lucide-react';
 
-const Dashboard = ({ orders, drivers, restaurants }) => {
+const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
   // State for animations
   const [animate, setAnimate] = useState(false);
   const [timeRange, setTimeRange] = useState('week');
@@ -21,7 +21,7 @@ const Dashboard = ({ orders, drivers, restaurants }) => {
   // Calculate stats
   const activeOrders = orders.filter(order => ['new', 'assigned', 'preparing', 'in-transit'].includes(order.status)).length;
   const availableDrivers = drivers.filter(driver => driver.status === 'available').length;
-  const totalSales = orders.reduce((sum, order) => sum + order.totalAmount, 0).toFixed(2);
+  const totalSales = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0).toFixed(2);
   
   // Calculate order status breakdowns
   const orderStatuses = {
@@ -55,9 +55,10 @@ const Dashboard = ({ orders, drivers, restaurants }) => {
 
   // Function to calculate average order value
   const calculateAverageOrderValue = () => {
-    const avgOrderValue = orders.length > 0
-      ? (orders.reduce((sum, order) => sum + order.totalAmount, 0) / orders.length).toFixed(2)
-      : 0;
+    const validOrders = orders.filter(order => order.totalAmount !== undefined && order.totalAmount !== null);
+    const avgOrderValue = validOrders.length > 0
+      ? (validOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0) / validOrders.length).toFixed(2)
+      : '0.00';
     return `$${avgOrderValue}`;
   };
 
@@ -67,7 +68,7 @@ const Dashboard = ({ orders, drivers, restaurants }) => {
     const totalOrdersExcludingNew = orders.filter(order => order.status !== 'new').length;
     return totalOrdersExcludingNew > 0
       ? ((completedOrders / totalOrdersExcludingNew) * 100).toFixed(1)
-      : 0;
+      : '0.0';
   };
 
   // Generate sales data for charts
@@ -108,8 +109,13 @@ const Dashboard = ({ orders, drivers, restaurants }) => {
 
   // Format timestamp
   const formatTimestamp = (timestamp) => {
-    const date = new Date(timestamp);
-    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    if (!timestamp) return 'N/A';
+    try {
+      const date = new Date(timestamp);
+      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    } catch (error) {
+      return 'Invalid Date';
+    }
   };
 
   // Get order status background color
@@ -307,17 +313,21 @@ const Dashboard = ({ orders, drivers, restaurants }) => {
                 const customer = order.customerName;
                 
                 return (
-                  <tr key={order.id} className="hover:bg-gray-50 transition-all duration-150">
-                    <td className="font-medium">{order.id}</td>
-                    <td>{customer}</td>
+                  <tr key={order.id || index} className="hover:bg-gray-50 transition-all duration-150">
+                    <td className="font-medium">{order.id || `Order-${index}`}</td>
+                    <td>{customer || 'Unknown'}</td>
                     <td>{restaurant?.name || 'Unknown'}</td>
-                    <td className="text-gray-500 text-sm">{order.createdAt ? formatTimestamp(order.createdAt) : 'N/A'}</td>
+                    <td className="text-gray-500 text-sm">{formatTimestamp(order.createdAt)}</td>
                     <td>
-                      <span className={`status-pill ${getStatusBgColor(order.status)}`}>
-                        {order.status.replace('-', ' ')}
+                      <span className={`status-pill ${getStatusBgColor(order.status || 'unknown')}`}>
+                        {(order.status || 'unknown').replace('-', ' ')}
                       </span>
                     </td>
-                    <td className="font-semibold">${order.totalAmount.toFixed(2)}</td>
+                    <td className="font-semibold">
+                      ${(order.totalAmount !== undefined && order.totalAmount !== null) 
+                        ? order.totalAmount.toFixed(2) 
+                        : '0.00'}
+                    </td>
                     <td>
                       <div className="flex gap-2">
                         <button className="btn btn-sm btn-info">View</button>

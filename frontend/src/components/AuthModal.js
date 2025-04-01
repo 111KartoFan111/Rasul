@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.js';
+import apiClient from '../utils/apiClient';
 
 const AuthModal = ({ isOpen, onClose }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,9 +12,6 @@ const AuthModal = ({ isOpen, onClose }) => {
 
   const { login } = useAuth();
 
-  // Используем переменную окружения для базового URL API
-  const API_BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5001';
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -24,13 +22,12 @@ const AuthModal = ({ isOpen, onClose }) => {
       formData.append('username', username);
       formData.append('password', password);
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/token`, {
+      const response = await fetch(`${apiClient.defaults.baseURL.replace('/api', '')}/api/auth/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: formData,
-        credentials: 'include' // Важно для работы с куками
       });
 
       if (!response.ok) {
@@ -65,30 +62,19 @@ const AuthModal = ({ isOpen, onClose }) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-          role: 'user' // Роль по умолчанию
-        })
+      const response = await apiClient.post('/auth/register', {
+        username,
+        email,
+        password,
+        role: 'user' // Роль по умолчанию
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Ошибка регистрации');
-      }
 
       // После успешной регистрации переключаемся на форму входа
       setIsLogin(true);
       setEmail('');
       setError('Регистрация успешна. Теперь можете войти.');
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || 'Ошибка регистрации');
       console.error('Registration error:', err);
     } finally {
       setIsLoading(false);

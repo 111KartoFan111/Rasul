@@ -7,10 +7,14 @@ import Analytics from './components/Analytics';
 import Settings from './components/Settings';
 import AuthModal from './components/AuthModal';
 import apiClient from './utils/apiClient';
-import { useAuth } from './contexts/AuthContext';
 import './App.css';
 
+import { useAuth } from './contexts/AuthContext';
+
 const AppContent = () => {
+  const authContext = useAuth();
+  console.log("Auth context:", authContext);
+  const { user = null, isAuthenticated = false, logout = () => {}, loading = true } = authContext || {};
   const [activeTab, setActiveTab] = useState('dashboard');
   const [orders, setOrders] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -21,7 +25,6 @@ const AppContent = () => {
   const [error, setError] = useState(null);
   const [authError, setAuthError] = useState(false);
 
-  const { user, isAuthenticated, logout, loading } = useAuth();
 
   // Обработка неавторизованного доступа
   useEffect(() => {
