@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.js';
 
@@ -8,15 +7,17 @@ const AuthModal = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const { login } = useAuth();
 
-  // Use environment variable for API base URL
+  // Используем переменную окружения для базового URL API
   const API_BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:5001';
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
     try {
       const formData = new URLSearchParams();
@@ -28,7 +29,8 @@ const AuthModal = ({ isOpen, onClose }) => {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: formData
+        body: formData,
+        credentials: 'include' // Важно для работы с куками
       });
 
       if (!response.ok) {
@@ -38,24 +40,29 @@ const AuthModal = ({ isOpen, onClose }) => {
 
       const data = await response.json();
 
-      // Use login method from AuthContext
+      // Используем метод login из AuthContext
       login({
         id: data.user_id,
         username: data.username,
         role: data.role
       }, data.access_token);
 
-      // Close modal
+      // Очищаем форму и закрываем модальное окно
+      setUsername('');
+      setPassword('');
       onClose();
     } catch (err) {
       setError(err.message || 'Ошибка входа. Проверьте логин и пароль.');
       console.error('Login error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
@@ -67,7 +74,7 @@ const AuthModal = ({ isOpen, onClose }) => {
           username,
           email,
           password,
-          role: 'user' // Default role
+          role: 'user' // Роль по умолчанию
         })
       });
 
@@ -76,13 +83,15 @@ const AuthModal = ({ isOpen, onClose }) => {
         throw new Error(errorData.detail || 'Ошибка регистрации');
       }
 
-      // After successful registration, switch to login
+      // После успешной регистрации переключаемся на форму входа
       setIsLogin(true);
       setEmail('');
       setError('Регистрация успешна. Теперь можете войти.');
     } catch (err) {
       setError(err.message);
       console.error('Registration error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -121,6 +130,7 @@ const AuthModal = ({ isOpen, onClose }) => {
               className="form-control w-full"
               placeholder="Введите имя пользователя"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -137,6 +147,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                 className="form-control w-full"
                 placeholder="Введите email"
                 required={!isLogin}
+                disabled={isLoading}
               />
             </div>
           )}
@@ -153,6 +164,7 @@ const AuthModal = ({ isOpen, onClose }) => {
               className="form-control w-full"
               placeholder="Введите пароль"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -160,8 +172,9 @@ const AuthModal = ({ isOpen, onClose }) => {
             <button 
               type="submit" 
               className="btn btn-primary w-full"
+              disabled={isLoading}
             >
-              {isLogin ? 'Войти' : 'Зарегистрироваться'}
+              {isLoading ? 'Загрузка...' : (isLogin ? 'Войти' : 'Зарегистрироваться')}
             </button>
           </div>
         </form>
@@ -176,6 +189,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                   setError('');
                 }} 
                 className="text-primary-color hover:underline"
+                disabled={isLoading}
               >
                 Зарегистрируйтесь
               </button>
@@ -189,6 +203,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                   setError('');
                 }} 
                 className="text-primary-color hover:underline"
+                disabled={isLoading}
               >
                 Войдите
               </button>

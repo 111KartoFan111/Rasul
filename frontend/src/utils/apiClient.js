@@ -15,12 +15,12 @@ const handleResponse = async (response) => {
       errorData
     });
 
-    // Specific handling for authentication errors
+    // Обработка ошибок аутентификации без перезагрузки страницы
     if (response.status === 401) {
-        // Trigger logout event
-        const logoutEvent = new CustomEvent('unauthorized');
-        window.dispatchEvent(logoutEvent);  
-      }
+      // Вместо перезагрузки страницы, просто отправляем событие
+      const logoutEvent = new CustomEvent('unauthorized');
+      window.dispatchEvent(logoutEvent);
+    }
 
     const error = new Error(
       errorData.detail || errorData.message || 'An unexpected error occurred'
@@ -47,7 +47,50 @@ const apiClient = {
     });
     return handleResponse(response);
   },
-  // Similar updates for post, put, delete methods
+  
+  post: async (endpoint, data = {}, options = {}) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...options.headers
+      },
+      body: JSON.stringify(data),
+      ...options
+    });
+    return handleResponse(response);
+  },
+  
+  put: async (endpoint, data = {}, options = {}) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...options.headers
+      },
+      body: JSON.stringify(data),
+      ...options
+    });
+    return handleResponse(response);
+  },
+  
+  delete: async (endpoint, options = {}) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...options.headers
+      },
+      ...options
+    });
+    return handleResponse(response);
+  }
 };
 
 export default apiClient;

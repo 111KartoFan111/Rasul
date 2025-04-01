@@ -7,7 +7,7 @@ import Analytics from './components/Analytics';
 import Settings from './components/Settings';
 import AuthModal from './components/AuthModal';
 import apiClient from './utils/apiClient';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext';
 import './App.css';
 
 const AppContent = () => {
@@ -21,10 +21,9 @@ const AppContent = () => {
   const [error, setError] = useState(null);
   const [authError, setAuthError] = useState(false);
 
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, loading } = useAuth();
 
-
-  // Handle unauthorized access
+  // Обработка неавторизованного доступа
   useEffect(() => {
     const handleUnauthorized = () => {
       logout();
@@ -38,10 +37,10 @@ const AppContent = () => {
     };
   }, [logout]);
 
-  // Load initial data from API
+  // Загрузка данных только после завершения инициализации аутентификации
   useEffect(() => {
     const fetchData = async () => {
-      if (!isAuthenticated) return;
+      if (!isAuthenticated || loading) return;
 
       setIsLoading(true);
       setError(null);
@@ -71,34 +70,24 @@ const AppContent = () => {
     };
 
     fetchData();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loading]);
 
   useEffect(() => {
     if (authError) {
       logout();
+      setIsAuthModalOpen(true);
+      setAuthError(false); // Сбрасываем флаг после обработки
     }
   }, [authError, logout]);
 
-  // Rest of the component remains the same
-  // Functions to manage orders
+  // Функции для работы с заказами
   const assignDriver = async (orderId, driverId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/orders/${orderId}/assign-driver`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ 
-          driverId, 
-          driverName: drivers.find(d => d.id === driverId)?.name 
-        })
+      const updatedOrder = await apiClient.put(`/orders/${orderId}/assign-driver`, { 
+        driverId, 
+        driverName: drivers.find(d => d.id === driverId)?.name 
       });
-
-      if (!response.ok) throw new Error('Failed to assign driver');
-
-      const updatedOrder = await response.json();
+      
       const updatedOrders = orders.map(order =>
         order.id === orderId ? updatedOrder : order
       );
@@ -110,19 +99,8 @@ const AppContent = () => {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status })
-      });
-
-      if (!response.ok) throw new Error('Failed to update order status');
-
-      const updatedOrder = await response.json();
+      const updatedOrder = await apiClient.put(`/orders/${orderId}/status`, { status });
+      
       const updatedOrders = orders.map(order =>
         order.id === orderId ? updatedOrder : order
       );
@@ -136,10 +114,21 @@ const AppContent = () => {
     setOrders([order, ...orders]);
   };
 
-  // Render active tab content
+  // Отображение активной вкладки
   const renderContent = () => {
+    // Показываем индикатор загрузки, пока проверяется аутентификация
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center h-full">
+          <div className="text-center">
+            <p className="text-xl mb-4">Загрузка...</p>
+          </div>
+        </div>
+      );
+    }
+
     if (!isAuthenticated) {
-      // Show login prompt if no user is logged in
+      // Показываем приглашение на вход, если пользователь не аутентифицирован
       return (
         <div className="flex justify-center items-center h-full">
           <div className="text-center">
@@ -150,6 +139,17 @@ const AppContent = () => {
             >
               Войти
             </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Показываем индикатор загрузки данных
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center h-full">
+          <div className="text-center">
+            <p className="text-xl mb-4">Загрузка данных...</p>
           </div>
         </div>
       );
@@ -191,7 +191,7 @@ const AppContent = () => {
             className="user-profile cursor-pointer"
             onClick={() => isAuthenticated ? logout() : setIsAuthModalOpen(true)}
           >
-            {isAuthenticated ? (
+            {isAuthenticated && user ? (
               <>
                 <div className="user-info">
                   <p className="user-name">{user.username}</p>
@@ -272,13 +272,4 @@ const AppContent = () => {
   );
 };
 
-// Wrap the entire App with AuthProvider
-const App = () => {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
-};
-
-export default App;
+export default AppContent;
