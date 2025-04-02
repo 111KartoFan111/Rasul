@@ -131,11 +131,10 @@ const AppContent = () => {
     }
 
     if (!isAuthenticated) {
-      // Показываем приглашение на вход, если пользователь не аутентифицирован
       return (
         <div className="flex justify-center items-center h-full">
           <div className="text-center">
-            <h2 className="text-2xl mb-4">Пожалуйста, войдите в систему</h2>
+            <h2 className="text-2xl mb-4">Жүйеге кіріңіз</h2>
             <button 
               className="btn btn-primary"
               onClick={() => setIsAuthModalOpen(true)}
@@ -152,7 +151,7 @@ const AppContent = () => {
       return (
         <div className="flex justify-center items-center h-full">
           <div className="text-center">
-            <p className="text-xl mb-4">Загрузка данных...</p>
+            <p className="text-xl mb-4">Деректерді қотару...</p>
           </div>
         </div>
       );
@@ -224,37 +223,37 @@ const AppContent = () => {
                 <input id="dashboard" name="page" type="radio" checked={activeTab === 'dashboard'} onChange={() => setActiveTab('dashboard')} />
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 20" height="20" width="20" className="icon home">
                 </svg>
-                <span>Dashboard</span>
+                <span>Аспап тақтасы</span>
               </label>
               <label title="Orders" htmlFor="orders" className={`label orders-hover ${activeTab === 'orders' ? 'active' : ''}`}>
                 <input id="orders" name="page" type="radio" checked={activeTab === 'orders'} onChange={() => setActiveTab('orders')} />
                 <svg xmlns="http://www.w3.org/2000/svg" fill="inherit" viewBox="0 0 18 20" height="20" width="20" className="icon cart">
                 </svg>
-                <span>Orders</span>
+                <span>Тапсырыстар</span>
               </label>
               <label title="Drivers" htmlFor="drivers" className={`label drivers-hover ${activeTab === 'drivers' ? 'active' : ''}`}>
                 <input id="drivers" name="page" type="radio" checked={activeTab === 'drivers'} onChange={() => setActiveTab('drivers')} />
                 <svg xmlns="http://www.w3.org/2000/svg" fill="inherit" viewBox="0 0 20 20" height="20" width="20" className="icon car">
                 </svg>
-                <span>Drivers</span>
+                <span>Драйверлер</span>
               </label>
               <label title="Restaurants" htmlFor="restaurants" className={`label restaurants-hover ${activeTab === 'restaurants' ? 'active' : ''}`}>
                 <input id="restaurants" name="page" type="radio" checked={activeTab === 'restaurants'} onChange={() => setActiveTab('restaurants')} />
                 <svg xmlns="http://www.w3.org/2000/svg" fill="inherit" viewBox="0 0 20 20" height="20" width="20" className="icon restaurant">
                 </svg>
-                <span>Restaurants</span>
+                <span>Мейрамханалар</span>
               </label>
               <label title="Analytics" htmlFor="analytics" className={`label analytics-hover ${activeTab === 'analytics' ? 'active' : ''}`}>
                 <input id="analytics" name="page" type="radio" checked={activeTab === 'analytics'} onChange={() => setActiveTab('analytics')} />
                 <svg xmlns="http://www.w3.org/2000/svg" fill="inherit" viewBox="0 0 20 20" height="20" width="20" className="icon analytics">
                 </svg>
-                <span>Analytics</span>
+                <span>Талдау</span>
               </label>
               <label title="Settings" htmlFor="settings" className={`label settings-hover ${activeTab === 'settings' ? 'active' : ''}`}>
                 <input id="settings" name="page" type="radio" checked={activeTab === 'settings'} onChange={() => setActiveTab('settings')} />
                 <svg xmlns="http://www.w3.org/2000/svg" fill="inherit" viewBox="0 0 20 20" height="20" width="20" className="icon settings">
                 </svg>
-                <span>Settings</span>
+                <span>Теңшеу параметрлері</span>
               </label>
             </section>
           </div>

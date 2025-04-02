@@ -106,7 +106,7 @@ const AuthModal = ({ isOpen, onClose }) => {
         <form onSubmit={isLogin ? handleLogin : handleRegister}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-              Имя пользователя
+            Пайдаланушы аты
             </label>
             <input
               type="text"
@@ -114,7 +114,7 @@ const AuthModal = ({ isOpen, onClose }) => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="form-control w-full"
-              placeholder="Введите имя пользователя"
+              placeholder="Пайдаланушының атын енгізіңіз"
               required
               disabled={isLoading}
             />
@@ -131,7 +131,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="form-control w-full"
-                placeholder="Введите email"
+                placeholder="Электрондық поштаны енгізіңіз"
                 required={!isLogin}
                 disabled={isLoading}
               />
@@ -140,7 +140,7 @@ const AuthModal = ({ isOpen, onClose }) => {
 
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-              Пароль
+            Құпия сөз
             </label>
             <input
               type="password"
@@ -148,7 +148,7 @@ const AuthModal = ({ isOpen, onClose }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="form-control w-full"
-              placeholder="Введите пароль"
+              placeholder="Құпия сөзді енгізіңіз"
               required
               disabled={isLoading}
             />
@@ -160,7 +160,7 @@ const AuthModal = ({ isOpen, onClose }) => {
               className="btn btn-primary w-full"
               disabled={isLoading}
             >
-              {isLoading ? 'Загрузка...' : (isLogin ? 'Войти' : 'Зарегистрироваться')}
+              {isLoading ? 'Жүктеу...' : (isLogin ? 'Кіру' : 'Тіркелу')}
             </button>
           </div>
         </form>
@@ -168,7 +168,7 @@ const AuthModal = ({ isOpen, onClose }) => {
         <div className="text-center mt-4">
           {isLogin ? (
             <p className="text-sm text-gray-600">
-              Нет аккаунта? {' '}
+              Тіркелгі жоқ па? {' '}
               <button 
                 onClick={() => {
                   setIsLogin(false);
@@ -177,12 +177,12 @@ const AuthModal = ({ isOpen, onClose }) => {
                 className="text-primary-color hover:underline"
                 disabled={isLoading}
               >
-                Зарегистрируйтесь
+                Тіркеліңіз
               </button>
             </p>
           ) : (
             <p className="text-sm text-gray-600">
-              Уже есть аккаунт? {' '}
+              Тіркелгіңіз бар ма? {' '}
               <button 
                 onClick={() => {
                   setIsLogin(true);
@@ -191,7 +191,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                 className="text-primary-color hover:underline"
                 disabled={isLoading}
               >
-                Войдите
+                Кіру
               </button>
             </p>
           )}

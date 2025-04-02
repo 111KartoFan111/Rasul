@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../utils/apiClient'; // Импортируем apiClient
 
 const RestaurantManagement = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -13,22 +13,19 @@ const RestaurantManagement = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [animateItem, setAnimateItem] = useState(null);
 
-  // Используем порт 5001, как в вашем backend
-  const API_BASE_URL = 'http://localhost:5001';
-
   // Загрузка ресторанов
   useEffect(() => {
     const fetchRestaurants = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/restaurants`);
-        setRestaurants(response.data);
+        const response = await apiClient.get('/restaurants'); // Используем apiClient
+        setRestaurants(response); // response уже содержит данные благодаря интерцептору
       } catch (error) {
         console.error('Detailed error:', error);
         
         if (error.response) {
-          setError(`Ошибка загрузки: ${error.response.data.message}`);
+          setError(`Ошибка загрузки: ${error.response.data.message || 'Неизвестная ошибка'}`);
         } else if (error.request) {
           setError('Нет ответа от сервера');
         } else {
@@ -44,9 +41,8 @@ const RestaurantManagement = () => {
 
   // Добавление нового ресторана
   const handleAddRestaurant = async () => {
-    // Проверка корректности данных
     if (!newRestaurant.name.trim() || !newRestaurant.address.trim()) {
-      setError('Введите название и адрес ресторана');
+      setError('Введите название и Мекен-жайы ресторана');
       return;
     }
 
@@ -54,29 +50,22 @@ const RestaurantManagement = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/restaurants`, {
+      const response = await apiClient.post('/restaurants', {
         name: newRestaurant.name.trim(),
         address: newRestaurant.address.trim()
       });
 
-      // Добавляем новый ресторан в список
-      setRestaurants(prevRestaurants => [...prevRestaurants, response.data]);
-      
-      // Показываем сообщение об успехе
+      setRestaurants(prevRestaurants => [...prevRestaurants, response]);
       setSuccessMessage('Ресторан успешно добавлен!');
       setTimeout(() => setSuccessMessage(''), 3000);
-      
-      // Анимируем новый элемент
-      setAnimateItem(response.data.id);
+      setAnimateItem(response.id);
       setTimeout(() => setAnimateItem(null), 1000);
-      
-      // Очищаем форму
       setNewRestaurant({ name: '', address: '' });
     } catch (error) {
       console.error('Ошибка добавления ресторана:', error);
       
       if (error.response) {
-        setError(`Не удалось добавить ресторан: ${error.response.data.message}`);
+        setError(`Не удалось добавить ресторан: ${error.response.data.message || 'Неизвестная ошибка'}`);
       } else {
         setError('Не удалось добавить ресторан. Проверьте подключение.');
       }
@@ -92,26 +81,21 @@ const RestaurantManagement = () => {
     const restaurant = restaurants.find(r => r.id === id);
     
     try {
-      await axios.put(`${API_BASE_URL}/api/restaurants/${id}`, { 
+      await apiClient.put(`/restaurants/${id}`, { 
         name: restaurant.name, 
         address: restaurant.address 
       });
       
-      // Показываем сообщение об успехе
       setSuccessMessage('Ресторан успешно обновлен!');
       setTimeout(() => setSuccessMessage(''), 3000);
-      
-      // Отключаем режим редактирования
       setIsEditing(prev => ({...prev, [id]: false}));
-      
-      // Анимируем обновленный элемент
       setAnimateItem(id);
       setTimeout(() => setAnimateItem(null), 1000);
     } catch (error) {
       console.error('Ошибка обновления ресторана:', error);
       
       if (error.response) {
-        setError(`Не удалось обновить ресторан: ${error.response.data.message}`);
+        setError(`Не удалось обновить ресторан: ${error.response.data.message || 'Неизвестная ошибка'}`);
       } else {
         setError('Не удалось обновить ресторан');
       }
@@ -123,19 +107,16 @@ const RestaurantManagement = () => {
     if (!window.confirm('Вы уверены, что хотите удалить этот ресторан?')) return;
     
     try {
-      await axios.delete(`${API_BASE_URL}/api/restaurants/${id}`);
+      await apiClient.delete(`/restaurants/${id}`);
       
-      // Удаляем ресторан из списка
       setRestaurants(prevRestaurants => prevRestaurants.filter(r => r.id !== id));
-      
-      // Показываем сообщение об успехе
       setSuccessMessage('Ресторан успешно удален!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Ошибка удаления ресторана:', error);
       
       if (error.response) {
-        setError(`Не удалось удалить ресторан: ${error.response.data.message}`);
+        setError(`Не удалось удалить ресторан: ${error.response.data.message || 'Неизвестная ошибка'}`);
       } else {
         setError('Не удалось удалить ресторан');
       }
@@ -157,7 +138,7 @@ const RestaurantManagement = () => {
 
   return (
     <div className="page-container">
-      <div className="section-title">Управление ресторанами</div>
+      <div className="section-title">Мейрамханаларды басқару</div>
       
       {/* Уведомления */}
       {error && (
@@ -200,27 +181,27 @@ const RestaurantManagement = () => {
       {/* Форма добавления ресторана */}
       <div className="card mb-8">
         <div className="card-header">
-          <h3 className="card-title">Добавить новый ресторан</h3>
+          <h3 className="card-title">Жаңа мейрамхана қосу</h3>
         </div>
         <div className="grid grid-cols-1 grid-cols-2-md gap-4 mb-4">
           <div className="form-group">
-            <label className="form-label">Название ресторана</label>
+            <label className="form-label">Мейрамхана атауы</label>
             <input
               type="text"
               className="form-control"
               value={newRestaurant.name}
               onChange={(e) => setNewRestaurant({ ...newRestaurant, name: e.target.value })}
-              placeholder="Введите название ресторана"
+              placeholder="Мейрамхана атауын енгізіңіз"
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Адрес</label>
+            <label className="form-label">Мекен-жайы</label>
             <input
               type="text"
               className="form-control"
               value={newRestaurant.address}
               onChange={(e) => setNewRestaurant({ ...newRestaurant, address: e.target.value })}
-              placeholder="Введите адрес ресторана"
+              placeholder="Мейрамхананың мекенжайын енгізіңіз"
             />
           </div>
         </div>
@@ -282,8 +263,8 @@ const RestaurantManagement = () => {
                 <tr>
                   <th>ID</th>
                   <th>Название</th>
-                  <th>Адрес</th>
-                  <th>Действия</th>
+                  <th>Мекен-жайы</th>
+                  <th>Әрекеттер</th>
                 </tr>
               </thead>
               <tbody>
@@ -331,7 +312,7 @@ const RestaurantManagement = () => {
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                               </svg>
-                              Сохранить
+                              Сақтау
                             </button>
                             <button
                               className="btn btn-warning btn-sm"
@@ -341,7 +322,7 @@ const RestaurantManagement = () => {
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                               </svg>
-                              Отмена
+                              Болдырмау
                             </button>
                           </>
                         ) : (
@@ -354,7 +335,7 @@ const RestaurantManagement = () => {
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                               </svg>
-                              Изменить
+                              Өзгерту
                             </button>
                             <button
                               className="btn btn-danger btn-sm"
@@ -364,7 +345,7 @@ const RestaurantManagement = () => {
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                               </svg>
-                              Удалить
+                              Өшіру
                             </button>
                           </>
                         )}

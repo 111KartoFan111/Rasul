@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
 const Analytics = ({ orders, drivers, restaurants }) => {
-  // Временные периоды для фильтрации данных
+  // Уақыт кезеңдері бойынша деректерді сүзу
   const [timeFilter, setTimeFilter] = useState('all');
   const [filteredOrders, setFilteredOrders] = useState(orders);
   const [dateRange, setDateRange] = useState({ start: null, end: null });
   
-  // Метрики эффективности
+  // Тиімділік метрикалары
   const [performanceMetrics, setPerformanceMetrics] = useState({
     avgDeliveryTime: 0,
     avgOrderValue: 0,
@@ -14,11 +14,11 @@ const Analytics = ({ orders, drivers, restaurants }) => {
     topRestaurants: []
   });
   
-  // Фиксированные значения, которые не меняются при фильтрации
+  // Сүзгілеу кезінде өзгермейтін тұрақты мәндер
   const totalDrivers = drivers.length;
   const totalRestaurants = restaurants.length;
   
-  // Фильтрация заказов по временному периоду
+  // Тапсырмаларды уақыт кезеңі бойынша сүзу
   useEffect(() => {
     let filtered = [...orders];
     const now = new Date();
@@ -46,9 +46,9 @@ const Analytics = ({ orders, drivers, restaurants }) => {
     setFilteredOrders(filtered);
   }, [orders, timeFilter, dateRange]);
   
-  // Расчет метрик эффективности
+  // Тиімділік метрикаларын есептеу
   useEffect(() => {
-    // Среднее время доставки (от подтверждения до доставки)
+    // Орташа жеткізу уақыты (расталғаннан жеткізілгенге дейін)
     const completedOrders = filteredOrders.filter(order => order.status === 'delivered' && order.deliveredAt && order.confirmedAt);
     const totalDeliveryTime = completedOrders.reduce((sum, order) => {
       const deliveryTime = new Date(order.deliveredAt) - new Date(order.confirmedAt);
@@ -56,15 +56,15 @@ const Analytics = ({ orders, drivers, restaurants }) => {
     }, 0);
     
     const avgDeliveryTime = completedOrders.length > 0 
-      ? Math.round(totalDeliveryTime / completedOrders.length / (1000 * 60)) // в минутах
+      ? Math.round(totalDeliveryTime / completedOrders.length / (1000 * 60)) // минутпен
       : 0;
     
-    // Средняя стоимость заказа
+    // Орташа тапсырыс құны
     const avgOrderValue = filteredOrders.length > 0
       ? (filteredOrders.reduce((sum, order) => sum + order.totalAmount, 0) / filteredOrders.length).toFixed(2)
       : 0;
     
-    // Определение ТОП водителей по количеству доставок
+    // Жеткізілім саны бойынша үздік жүргізушілерді анықтау
     const driverDeliveries = {};
     filteredOrders.forEach(order => {
       if (order.driverId && order.status === 'delivered') {
@@ -75,12 +75,12 @@ const Analytics = ({ orders, drivers, restaurants }) => {
     const topDrivers = Object.entries(driverDeliveries)
       .map(([driverId, count]) => {
         const driver = drivers.find(d => d.id === driverId);
-        return { id: driverId, name: driver ? driver.name : 'Unknown', deliveries: count };
+        return { id: driverId, name: driver ? driver.name : 'Белгісіз', deliveries: count };
       })
       .sort((a, b) => b.deliveries - a.deliveries)
       .slice(0, 5);
     
-    // Определение ТОП ресторанов по объему продаж
+    // Сату көлемі бойынша үздік мейрамханаларды анықтау
     const restaurantSales = {};
     filteredOrders.forEach(order => {
       if (order.restaurantId) {
@@ -91,7 +91,7 @@ const Analytics = ({ orders, drivers, restaurants }) => {
     const topRestaurants = Object.entries(restaurantSales)
       .map(([restaurantId, sales]) => {
         const restaurant = restaurants.find(r => r.id === restaurantId);
-        return { id: restaurantId, name: restaurant ? restaurant.name : 'Unknown', sales };
+        return { id: restaurantId, name: restaurant ? restaurant.name : 'Белгісіз', sales };
       })
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 5);
@@ -99,7 +99,7 @@ const Analytics = ({ orders, drivers, restaurants }) => {
     setPerformanceMetrics({ avgDeliveryTime, avgOrderValue, topDrivers, topRestaurants });
   }, [filteredOrders, drivers, restaurants]);
 
-  // Расчет существующих метрик на основе отфильтрованных заказов
+  // Сүзілген тапсырмалар негізінде қолданыстағы метрикаларды есептеу
   const totalOrders = filteredOrders.length;
   const totalSales = filteredOrders.reduce((sum, order) => sum + order.totalAmount, 0).toFixed(2);
 
@@ -112,61 +112,61 @@ const Analytics = ({ orders, drivers, restaurants }) => {
     cancelled: filteredOrders.filter(order => order.status === 'cancelled').length,
   };
 
-  // Функция для расчета процентного соотношения заказов по статусам
+  // Тапсырыс статусы бойынша пайыздық қатынасты есептеу функциясы
   const calculatePercentage = (count) => {
     return totalOrders > 0 ? Math.round((count / totalOrders) * 100) : 0;
   };
   
-  // Функция для форматирования времени
+  // Уақытты пішімдеу функциясы
   const formatTime = (minutes) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return hours > 0 ? `${hours}ч ${mins}м` : `${mins}м`;
+    return hours > 0 ? `${hours}с ${mins}м` : `${mins}м`;
   };
 
   return (
     <div>
-      <h2 className="section-title mb-6">Analytics</h2>
+      <h2 className="section-title mb-6">Аналитика</h2>
       
-      {/* Панель фильтрации по времени */}
+      {/* Уақыт бойынша сүзгілеу панелі */}
       <div className="mb-6">
         <div className="flex gap-4 mb-4">
           <button 
             className={`btn ${timeFilter === 'all' ? 'btn-primary' : 'btn-outline'}`} 
             onClick={() => setTimeFilter('all')}
           >
-            Все время
+            Барлық уақытта
           </button>
           <button 
             className={`btn ${timeFilter === 'today' ? 'btn-primary' : 'btn-outline'}`} 
             onClick={() => setTimeFilter('today')}
           >
-            Сегодня
+            Бүгін
           </button>
           <button 
             className={`btn ${timeFilter === 'week' ? 'btn-primary' : 'btn-outline'}`} 
             onClick={() => setTimeFilter('week')}
           >
-            Неделя
+            Апта
           </button>
           <button 
             className={`btn ${timeFilter === 'month' ? 'btn-primary' : 'btn-outline'}`} 
             onClick={() => setTimeFilter('month')}
           >
-            Месяц
+            Ай
           </button>
           <button 
             className={`btn ${timeFilter === 'custom' ? 'btn-primary' : 'btn-outline'}`} 
             onClick={() => setTimeFilter('custom')}
           >
-            Выбрать период
+            Кезеңді таңдау
           </button>
         </div>
         
         {timeFilter === 'custom' && (
           <div className="flex gap-4 mb-4">
             <div>
-              <label className="block mb-1">От</label>
+              <label className="block mb-1">Басталуы</label>
               <input 
                 type="date" 
                 className="input" 
@@ -175,7 +175,7 @@ const Analytics = ({ orders, drivers, restaurants }) => {
               />
             </div>
             <div>
-              <label className="block mb-1">До</label>
+              <label className="block mb-1">Аяқталуы</label>
               <input 
                 type="date" 
                 className="input" 
@@ -187,60 +187,60 @@ const Analytics = ({ orders, drivers, restaurants }) => {
         )}
       </div>
       
-      {/* Основные метрики */}
+      {/* Негізгі метрикалар */}
       <div className="grid grid-cols-1 grid-cols-2-md grid-cols-4-lg gap-4 mb-8">
-        <StatCard title="Всего заказов" value={totalOrders} />
-        <StatCard title="Всего водителей" value={totalDrivers} />
-        <StatCard title="Всего ресторанов" value={totalRestaurants} />
-        <StatCard title="Общие продажи" value={`$${totalSales}`} />
+        <StatCard title="Барлық тапсырыстар" value={totalOrders} />
+        <StatCard title="Барлық жүргізушілер" value={totalDrivers} />
+        <StatCard title="Барлық мейрамханалар" value={totalRestaurants} />
+        <StatCard title="Жалпы сату" value={`$${totalSales}`} />
       </div>
       
-      {/* Расширенные метрики */}
+      {/* Кеңейтілген метрикалар */}
       <div className="grid grid-cols-1 grid-cols-2-md grid-cols-4-lg gap-4 mb-8">
         <StatCard 
-          title="Среднее время доставки" 
+          title="Орташа жеткізу уақыты" 
           value={formatTime(performanceMetrics.avgDeliveryTime)} 
-          desc="От подтверждения до доставки"
+          desc="Растаудан жеткізуге дейін"
         />
         <StatCard 
-          title="Средний чек" 
+          title="Орташа чек" 
           value={`$${performanceMetrics.avgOrderValue}`} 
-          desc="Средняя стоимость заказа"
+          desc="Тапсырыстың орташа құны"
         />
         <StatCard 
-          title="Доставлено заказов" 
+          title="Жеткізілген тапсырыстар" 
           value={`${orderStatuses.delivered} (${calculatePercentage(orderStatuses.delivered)}%)`} 
-          desc="От общего количества"
+          desc="Жалпы саннан"
         />
         <StatCard 
-          title="Отменено заказов" 
+          title="Жойылған тапсырыстар" 
           value={`${orderStatuses.cancelled} (${calculatePercentage(orderStatuses.cancelled)}%)`} 
-          desc="От общего количества"
+          desc="Жалпы саннан"
         />
       </div>
       
-      {/* Статусы заказов */}
+      {/* Тапсырыс статусы */}
       <div className="card mb-8">
-        <h3 className="card-title mb-4">Статусы заказов</h3>
+        <h3 className="card-title mb-4">Тапсырыс статусы</h3>
         <div className="flex gap-4 flex-wrap">
-          <StatusPill label="Новый" count={orderStatuses.new} percentage={calculatePercentage(orderStatuses.new)} className="status-new" />
-          <StatusPill label="Назначен" count={orderStatuses.assigned} percentage={calculatePercentage(orderStatuses.assigned)} className="status-assigned" />
-          <StatusPill label="Готовится" count={orderStatuses.preparing} percentage={calculatePercentage(orderStatuses.preparing)} className="status-preparing" />
-          <StatusPill label="В пути" count={orderStatuses.transit} percentage={calculatePercentage(orderStatuses.transit)} className="status-in-transit" />
-          <StatusPill label="Доставлен" count={orderStatuses.delivered} percentage={calculatePercentage(orderStatuses.delivered)} className="status-delivered" />
-          <StatusPill label="Отменен" count={orderStatuses.cancelled} percentage={calculatePercentage(orderStatuses.cancelled)} className="status-cancelled" />
+          <StatusPill label="Жаңа" count={orderStatuses.new} percentage={calculatePercentage(orderStatuses.new)} className="status-new" />
+          <StatusPill label="Тағайындалған" count={orderStatuses.assigned} percentage={calculatePercentage(orderStatuses.assigned)} className="status-assigned" />
+          <StatusPill label="Дайындалуда" count={orderStatuses.preparing} percentage={calculatePercentage(orderStatuses.preparing)} className="status-preparing" />
+          <StatusPill label="Жолда" count={orderStatuses.transit} percentage={calculatePercentage(orderStatuses.transit)} className="status-in-transit" />
+          <StatusPill label="Жеткізілді" count={orderStatuses.delivered} percentage={calculatePercentage(orderStatuses.delivered)} className="status-delivered" />
+          <StatusPill label="Жойылды" count={orderStatuses.cancelled} percentage={calculatePercentage(orderStatuses.cancelled)} className="status-cancelled" />
         </div>
       </div>
       
-      {/* Лучшие водители */}
+      {/* Үздік жүргізушілер */}
       <div className="card mb-8">
-        <h3 className="card-title mb-4">Лучшие водители</h3>
+        <h3 className="card-title mb-4">Үздік жүргізушілер</h3>
         <div className="overflow-x-auto">
           <table className="table w-full">
             <thead>
               <tr>
-                <th>Водитель</th>
-                <th>Количество доставок</th>
+                <th>Жүргізуші</th>
+                <th>Жеткізілім саны</th>
               </tr>
             </thead>
             <tbody>
@@ -252,7 +252,7 @@ const Analytics = ({ orders, drivers, restaurants }) => {
               ))}
               {performanceMetrics.topDrivers.length === 0 && (
                 <tr>
-                  <td colSpan="2" className="text-center py-4">Нет данных</td>
+                  <td colSpan="2" className="text-center py-4">Деректер жоқ</td>
                 </tr>
               )}
             </tbody>
@@ -260,15 +260,15 @@ const Analytics = ({ orders, drivers, restaurants }) => {
         </div>
       </div>
       
-      {/* Лучшие рестораны */}
+      {/* Үздік мейрамханалар */}
       <div className="card mb-8">
-        <h3 className="card-title mb-4">Лучшие рестораны</h3>
+        <h3 className="card-title mb-4">Үздік мейрамханалар</h3>
         <div className="overflow-x-auto">
           <table className="table w-full">
             <thead>
               <tr>
-                <th>Ресторан</th>
-                <th>Объем продаж</th>
+                <th>Мейрамхана</th>
+                <th>Сату көлемі</th>
               </tr>
             </thead>
             <tbody>
@@ -280,7 +280,7 @@ const Analytics = ({ orders, drivers, restaurants }) => {
               ))}
               {performanceMetrics.topRestaurants.length === 0 && (
                 <tr>
-                  <td colSpan="2" className="text-center py-4">Нет данных</td>
+                  <td colSpan="2" className="text-center py-4">Деректер жоқ</td>
                 </tr>
               )}
             </tbody>
@@ -291,7 +291,7 @@ const Analytics = ({ orders, drivers, restaurants }) => {
   );
 };
 
-// Улучшенный компонент карточки статистики
+// Жақсартылған статистика карточкасы компоненті
 const StatCard = ({ title, value, desc }) => {
   return (
     <div className="stat-card">
@@ -302,7 +302,7 @@ const StatCard = ({ title, value, desc }) => {
   );
 };
 
-// Улучшенный компонент пилюли статуса
+// Жақсартылған статус пилюлясы компоненті
 const StatusPill = ({ label, count, percentage, className }) => {
   return (
     <div className={`status-pill ${className}`}>

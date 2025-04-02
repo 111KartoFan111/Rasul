@@ -146,13 +146,13 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
             className={`btn ${timeRange === 'week' ? 'btn-primary' : 'btn-info'}`}
             onClick={() => setTimeRange('week')}
           >
-            Week
+            Апта
           </button>
           <button 
             className={`btn ${timeRange === 'month' ? 'btn-primary' : 'btn-info'}`}
             onClick={() => setTimeRange('month')}
           >
-            Month
+            Ай
           </button>
         </div>
       </div>
@@ -160,7 +160,7 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
       {/* Stats Grid with Animation */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard 
-          title="Active Orders" 
+          title="Белсенді тапсырыстар" 
           value={loadingStats ? '-' : activeOrders}
           icon={<Package size={22} />}
           change="+12% from last week"
@@ -169,7 +169,7 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
           isLoading={loadingStats}
         />
         <StatCard 
-          title="Available Drivers" 
+          title="Қол жетімді драйверлер" 
           value={loadingStats ? '-' : availableDrivers}
           icon={<Truck size={22} />}
           change="+5% from last week"
@@ -178,7 +178,7 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
           isLoading={loadingStats}
         />
         <StatCard 
-          title="Total Restaurants" 
+          title="Барлық мейрамханалар" 
           value={loadingStats ? '-' : restaurants.length}
           icon={<Store size={22} />}
           change="No change"
@@ -187,7 +187,7 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
           isLoading={loadingStats}
         />
         <StatCard 
-          title="Total Sales" 
+          title="Сатудың жалпы көлемі" 
           value={loadingStats ? '-' : `$${totalSales}`}
           icon={<DollarSign size={22} />}
           change="+8% from last week"
@@ -200,7 +200,7 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="card overflow-hidden">
-          <h3 className="card-title mb-4">Sales Overview ({timeRange})</h3>
+          <h3 className="card-title mb-4">Сатуға шолу({timeRange})</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
@@ -224,7 +224,7 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
         </div>
 
         <div className="card overflow-hidden">
-          <h3 className="card-title mb-4">Order Status Distribution</h3>
+          <h3 className="card-title mb-4">Тапсырыс мәртебесін бөлу</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -249,22 +249,23 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
 
       {/* Performance Metrics */}
       <div className="card mb-8">
-        <h3 className="card-title mb-4">Performance Metrics</h3>
+      <h3 className="card-title mb-4">Өнімділік көрсеткіштері</h3>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <MetricCard 
-            title="Average Delivery Time" 
+            title="Орташа жеткізу уақыты" 
             value={calculateAverageDeliveryTime()} 
             icon={<Clock size={18} />}
             isLoading={loadingStats}
           />
           <MetricCard 
-            title="Average Order Value" 
+            title="Тапсырыстың орташа құны" 
             value={calculateAverageOrderValue()} 
             icon={<DollarSign size={18} />}
             isLoading={loadingStats}
           />
           <MetricCard 
-            title="Order Completion Rate" 
+            title="Тапсырысты орындау көрсеткіші" 
             value={`${calculateCompletionRate()}%`} 
             icon={<TrendingUp size={18} />}
             isLoading={loadingStats}
@@ -274,7 +275,7 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
 
       {/* Order Status Breakdown */}
       <div className="card mb-8">
-        <h3 className="card-title mb-4">Order Status Distribution</h3>
+        <h3 className="card-title mb-4">Тапсырыс мәртебесін бөлу</h3>
         <div className="flex gap-4 flex-wrap">
           {Object.entries(orderStatuses).map(([status, count], index) => (
             <StatusPill 
@@ -291,27 +292,26 @@ const Dashboard = ({ orders = [], drivers = [], restaurants = [] }) => {
       {/* Recent Orders with hover effects */}
       <div className="card">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="card-title">Recent Orders</h3>
-          <button className="btn btn-primary btn-sm">View All Orders</button>
+          <h3 className="card-title">Соңғы тапсырыстар</h3>
+          <button className="btn btn-primary btn-sm">Барлық тапсырыстарды қарап шығу</button>
         </div>
         <div className="table-container">
           <table className="table">
             <thead>
               <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Restaurant</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Amount</th>
-                <th>Actions</th>
+                <th>Тапсырыстың сәйкестендіру нөмірі </th>
+                <th>Клиент</th>
+                <th>Мейрамхана</th>
+                <th>Уақыт</th>
+                <th>Мәртебе</th>
+                <th>Сома</th>
+                <th>Әрекеттер</th>
               </tr>
             </thead>
             <tbody>
               {orders.slice(0, 5).map((order, index) => {
                 const restaurant = restaurants.find(r => r.id === order.restaurantId);
                 const customer = order.customerName;
-                
                 return (
                   <tr key={order.id || index} className="hover:bg-gray-50 transition-all duration-150">
                     <td className="font-medium">{order.id || `Order-${index}`}</td>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import apiClient from '../utils/apiClient'; 
 
 const DriverManagement = () => {
   const [drivers, setDrivers] = useState([]);
@@ -13,30 +13,27 @@ const DriverManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // API base URL
-  const API_BASE_URL = 'http://localhost:5001';
-
   // Fetch drivers on component mount
   useEffect(() => {
     fetchDrivers();
   }, []);
 
-  // Function to fetch drivers
+  // Function to fetch drivers using apiClient
   const fetchDrivers = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/drivers`);
-      setDrivers(response.data);
+      const response = await apiClient.get('/drivers'); // Используем apiClient
+      setDrivers(response); // apiClient возвращает данные напрямую благодаря интерцептору
     } catch (error) {
       console.error('Detailed error:', error);
       
       if (error.response) {
-        setError(`Ошибка загрузки: ${error.response.data.message}`);
+        setError(`Ошибка загрузки: ${error.response.data.message || 'Неизвестная ошибка'}`);
         console.error('Error response:', error.response.data);
         console.error('Error status:', error.response.status);
       } else if (error.request) {
-        setError('Нет ответа от сервера');
+        setError('Серверден жауап жоқ');
         console.error('Error request:', error.request);
       } else {
         setError(`Ошибка: ${error.message}`);
@@ -50,7 +47,7 @@ const DriverManagement = () => {
   // Add a new driver
   const handleAddDriver = async () => {
     if (!newDriver.name.trim()) {
-      setError('Введите имя водителя');
+      setError('Жүргізушінің атын енгізіңіз');
       return;
     }
 
@@ -58,21 +55,23 @@ const DriverManagement = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/drivers`, {
+      const response = await apiClient.post('/drivers', {
         name: newDriver.name.trim(),
         status: newDriver.status
       });
 
-      setDrivers(prevDrivers => [...prevDrivers, response.data]);
+      setDrivers(prevDrivers => [...prevDrivers, response]);
       setNewDriver({ name: '', status: 'available' });
       setShowAddForm(false);
     } catch (error) {
-      console.error('Ошибка добавления водителя:', error);
+      console.error('Жүргізушіні қосу қатесі:', error);
+
       
       if (error.response) {
-        setError(`Не удалось добавить водителя: ${error.response.data.message}`);
+        setError(`Жүргізушіні қосу сәтсіз аяқталды: ${error.response.data.message || 'Белгісіз қате'}`);
+
       } else {
-        setError('Не удалось добавить водителя. Проверьте подключение.');
+        setError('Жүргізуші қосылмады. Қосылымды тексеріңіз.');
       }
     } finally {
       setIsLoading(false);
@@ -82,19 +81,19 @@ const DriverManagement = () => {
   // Update driver status
   const handleUpdateDriverStatus = async (id, status) => {
     try {
-      await axios.put(`${API_BASE_URL}/api/drivers/${id}`, { status });
+      await apiClient.put(`/drivers/${id}`, { status });
       
       const updatedDrivers = drivers.map(driver =>
         driver.id === id ? { ...driver, status } : driver
       );
       setDrivers(updatedDrivers);
     } catch (error) {
-      console.error('Ошибка обновления статуса:', error);
+      console.error('Күйді жаңарту қатесі:', error);
       
       if (error.response) {
-        setError(`Не удалось обновить статус: ${error.response.data.message}`);
+        setError(`Күйді жаңарту мүмкін болмады: ${error.response.data.message || 'Белгісіз қате'}`);
       } else {
-        setError('Не удалось обновить статус водителя');
+        setError('Жүргізуші күйін жаңарту мүмкін болмады');
       }
     }
   };
@@ -166,7 +165,7 @@ const DriverManagement = () => {
 
   return (
     <div className="container mx-auto p-4 page-container">
-      {/* Header */}
+      {/* Остальная часть JSX остается без изменений */}
       <motion.div 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -174,47 +173,45 @@ const DriverManagement = () => {
         className="mb-6"
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold section-title">Управление водителями</h2>
+          <h2 className="text-2xl font-bold section-title">Жүргізушілерді басқару </h2>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="btn btn-primary"
             onClick={() => setShowAddForm(!showAddForm)}
           >
-            {showAddForm ? 'Отменить' : 'Добавить водителя'}
+            {showAddForm ? 'Болдырмау' : 'Жүргізушіні қосу'}
           </motion.button>
         </div>
         
-        {/* Status filter tabs */}
         <div className="flex flex-wrap gap-2 mb-4">
           <button 
             className={`status-pill ${filterStatus === 'all' ? 'bg-primary text-white' : 'bg-gray-100'}`}
             onClick={() => setFilterStatus('all')}
           >
-            Все ({driverCounts.all})
+            Барлығы ({driverCounts.all})
           </button>
           <button 
             className={`status-pill ${filterStatus === 'available' ? 'bg-primary text-white' : 'bg-success'}`}
             onClick={() => setFilterStatus('available')}
           >
-            Доступны ({driverCounts.available})
+            Қол жетімді ({driverCounts.available})
           </button>
           <button 
             className={`status-pill ${filterStatus === 'busy' ? 'bg-primary text-white' : 'bg-warning'}`}
             onClick={() => setFilterStatus('busy')}
           >
-            Заняты ({driverCounts.busy})
+            Бос емес ({driverCounts.busy})
           </button>
           <button 
             className={`status-pill ${filterStatus === 'offline' ? 'bg-primary text-white' : 'bg-danger'}`}
             onClick={() => setFilterStatus('offline')}
           >
-            Не в сети ({driverCounts.offline})
+            Желіден тыс ({driverCounts.offline})
           </button>
         </div>
       </motion.div>
       
-      {/* Error notifications */}
       <AnimatePresence>
         {error && (
           <motion.div 
@@ -245,7 +242,6 @@ const DriverManagement = () => {
         )}
       </AnimatePresence>
       
-      {/* Add driver form */}
       <AnimatePresence>
         {showAddForm && (
           <motion.div 
@@ -255,16 +251,16 @@ const DriverManagement = () => {
             exit="exit"
             className="card mb-8 border-l-4 border-primary"
           >
-            <h3 className="card-title mb-4">Добавить нового водителя</h3>
+            <h3 className="card-title mb-4">Жаңа жүргізуші қосу</h3>
             <div className="grid grid-cols-1 md:grid-cols-2-md gap-4 mb-4">
               <div className="form-group">
-                <label className="form-label">Имя водителя</label>
+                <label className="form-label">Жүргізушінің атауы</label>
                 <input
                   type="text"
                   className="form-control"
                   value={newDriver.name}
                   onChange={(e) => setNewDriver({ ...newDriver, name: e.target.value })}
-                  placeholder="Введите имя водителя"
+                  placeholder="Жүргізушінің атын енгізіңіз"
                 />
               </div>
               <div className="form-group">
@@ -274,9 +270,9 @@ const DriverManagement = () => {
                   value={newDriver.status}
                   onChange={(e) => setNewDriver({ ...newDriver, status: e.target.value })}
                 >
-                  <option value="available">Доступен</option>
-                  <option value="busy">Занят</option>
-                  <option value="offline">Не в сети</option>
+                  <option value="available">Қол жетімді</option>
+                  <option value="busy">Бос емес</option>
+                  <option value="offline">Желіден тыс</option>
                 </select>
               </div>
             </div>
@@ -294,21 +290,20 @@ const DriverManagement = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Добавление...
+                    Қосу...
                   </span>
-                ) : 'Добавить водителя'}
+                ) : 'Жүргізушіні қосу'}
               </motion.button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Drivers list */}
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">Список водителей</h3>
+          <h3 className="card-title">Жүргізушілер тізімі</h3>
           <span className="text-gray-500 text-sm">
-            {filteredDrivers.length} {filteredDrivers.length === 1 ? 'водитель' : 'водителей'}
+            {filteredDrivers.length} {filteredDrivers.length === 1 ? 'жүргізуші' : 'жүргізушілер'}
           </span>
         </div>
         
@@ -330,9 +325,9 @@ const DriverManagement = () => {
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Имя</th>
+                        <th>Атауы</th>
                         <th>Статус</th>
-                        <th>Действия</th>
+                        <th>Әрекеттер</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -354,9 +349,9 @@ const DriverManagement = () => {
                               value={driver.status}
                               onChange={(e) => handleUpdateDriverStatus(driver.id, e.target.value)}
                             >
-                              <option value="available">Доступен</option>
-                              <option value="busy">Занят</option>
-                              <option value="offline">Не в сети</option>
+                              <option value="available">Қол жетімді</option>
+                              <option value="busy">Бос емес</option>
+                              <option value="offline">Желіден тыс</option>
                             </select>
                           </td>
                         </motion.tr>
@@ -374,12 +369,12 @@ const DriverManagement = () => {
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                 </svg>
-                <p className="mt-2 text-sm">Нет доступных водителей</p>
+                <p className="mt-2 text-sm">Қол жетімді жүргізушілер жоқ</p>
                 <button 
                   className="btn btn-primary mt-4"
                   onClick={() => setShowAddForm(true)}
                 >
-                  Добавить водителя
+                  Жүргізушіні қосу
                 </button>
               </motion.div>
             )}
