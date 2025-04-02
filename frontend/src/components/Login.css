@@ -1,0 +1,223 @@
+/* Стили для модального окна */
+.fixed {
+    position: fixed;
+  }
+  
+  .inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+  
+  .bg-black {
+    background-color: #000000;
+  }
+  
+  .bg-opacity-50 {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .flex {
+    display: flex;
+  }
+  
+  .justify-center {
+    justify-content: center;
+  }
+  
+  .items-center {
+    align-items: center;
+  }
+  
+  .z-50 {
+    z-index: 50;
+  }
+  
+  /* Стили для контейнера модального окна */
+  .bg-white {
+    background-color: #ffffff;
+  }
+  
+  .p-8 {
+    padding: 2rem;
+  }
+  
+  .rounded-lg {
+    border-radius: 0.5rem;
+  }
+  
+  .shadow-xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+               0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .w-96 {
+    width: 24rem;
+  }
+  
+  .relative {
+    position: relative;
+  }
+  
+  /* Стили для кнопки закрытия */
+  .absolute {
+    position: absolute;
+  }
+  
+  .top-4 {
+    top: 1rem;
+  }
+  
+  .right-4 {
+    right: 1rem;
+  }
+  
+  .text-gray-500 {
+    color: #6b7280;
+  }
+  
+  .hover\:text-gray-800:hover {
+    color: #1f2937;
+  }
+  
+  /* Стили для заголовка */
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+  
+  .font-bold {
+    font-weight: 700;
+  }
+  
+  .mb-6 {
+    margin-bottom: 1.5rem;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  /* Стили для сообщения об ошибке */
+  .bg-red-100 {
+    background-color: #fee2e2;
+  }
+  
+  .border {
+    border-width: 1px;
+  }
+  
+  .border-red-400 {
+    border-color: #f87171;
+  }
+  
+  .text-red-700 {
+    color: #b91c1c;
+  }
+  
+  .px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+  
+  .rounded {
+    border-radius: 0.25rem;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1rem;
+  }
+  
+  /* Стили для формы */
+  .block {
+    display: block;
+  }
+  
+  .text-gray-700 {
+    color: #374151;
+  }
+  
+  .text-sm {
+    font-size: 0.875rem;
+  }
+  
+  .mb-2 {
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-control {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #374151;
+    background-color: #ffffff;
+    background-clip: padding-box;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  
+  .form-control:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  }
+  
+  .form-control:disabled {
+    background-color: #f3f4f6;
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .w-full {
+    width: 100%;
+  }
+  
+  /* Стили для кнопки */
+  .btn {
+    display: inline-block;
+    font-weight: 500;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .btn-primary {
+    color: #ffffff;
+    background-color: #3b82f6;
+    border: 1px solid #3b82f6;
+  }
+  
+  .btn-primary:hover:not(:disabled) {
+    background-color: #2563eb;
+    border-color: #2563eb;
+  }
+  
+  .btn-primary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+  
+  /* Стили для нижнего текста */
+  .mt-4 {
+    margin-top: 1rem;
+  }
+  
+  .text-primary-color {
+    color: #3b82f6;
+  }
+  
+  .hover\:underline:hover {
+    text-decoration: underline;
+  }
